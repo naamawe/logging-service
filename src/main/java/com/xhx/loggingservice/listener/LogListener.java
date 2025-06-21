@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import java.sql.Timestamp;
 
+import static com.xhx.loggingservice.constant.constant.*;
 import static constant.mqConstant.*;
 
 /**
@@ -25,17 +26,11 @@ public class LogListener {
     @RabbitListener(queues = {USER_QUEUE, PERMISSION_QUEUE})
     public void onMessage(OperationLogDTO dto) {
         if (dto == null) {
-            System.err.println("Received null message");
+            System.err.println(RECEIVE_NULL_MESSAGE);
             return;
         }
 
         try {
-            // 校验必填字段
-            if (dto.getUserId() == null || dto.getAction() == null || dto.getAction().isBlank()) {
-                System.err.println("Invalid operation log data: missing userId or action");
-                return;
-            }
-
             // 构造实体对象
             OperationLog log = new OperationLog();
             log.setUserId(dto.getUserId());
@@ -48,14 +43,13 @@ public class LogListener {
             // 调用数据库插入
             int rows = operationLogMapper.insertLog(log);
             if (rows != 1) {
-                System.err.println("Insert operation log failed for: " + log);
+                System.err.println(INSERT_OPERATION_LOG_FAILED + log);
             } else {
-                System.out.println("Operation log inserted successfully for userId=" + dto.getUserId());
+                System.out.println(INSERT_OPERATION_LOG_SUCCESS + dto.getUserId());
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("Failed to process operation log", e);
+            throw new RuntimeException(FAILED_TO_PROCESS_OPERATION_LOG, e);
         }
     }
 
